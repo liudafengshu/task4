@@ -1,3 +1,10 @@
+
+## 购买nft
+![alt text](<截屏2024-07-15 15.41.53.png>) 
+![alt text](<截屏2024-07-15 15.42.05.png>) 
+## 上架nft
+![alt text](<截屏2024-07-15 15.40.17.png>)
+ ![alt text](<截屏2024-07-15 15.40.41.png>)
 This is a [RainbowKit](https://rainbowkit.com) + [wagmi](https://wagmi.sh) + [Next.js](https://nextjs.org/) project bootstrapped with [`create-rainbowkit`](/packages/create-rainbowkit).
 
 ## Getting Started

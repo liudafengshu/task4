@@ -1,9 +1,75 @@
-import { ConnectButton } from '@rainbow-me/rainbowkit';
-import type { NextPage } from 'next';
-import Head from 'next/head';
-import styles from '../styles/Home.module.css';
+"use client";
+
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import type { NextPage } from "next";
+import Head from "next/head";
+import styles from "../styles/Home.module.css";
+import { useEffect, useMemo, useState } from "react";
+import { useWriteContract, useAccount, useReadContract } from "wagmi";
+import { address, nftAddress } from "../comfig";
+import abi from "../abi.json";
+import { type UseReadContractReturnType } from "wagmi";
 
 const Home: NextPage = () => {
+  const [nftContract, setnftContract] = useState(nftAddress);
+  const [tokenId, settokenId] = useState("");
+  const [price, setprice] = useState("");
+  const { writeContract, isPending } = useWriteContract();
+  const { isConnected } = useAccount();
+  const result = useReadContract({
+    abi,
+    address,
+    functionName: "getAllListings",
+  });
+  const lists = useMemo(() => {
+    if (result.data) {
+      return Array.from(result.data as any).filter(
+        (item: any) => item.active && !!item.tokenId
+      );
+    }
+    return [];
+  }, [result.data]);
+  const listNft = async () => {
+    writeContract(
+      {
+        abi,
+        address,
+        functionName: "listNFT",
+        args: [nftContract, tokenId, price],
+      },
+      {
+        onSuccess() {
+          alert("上架成功！");
+        },
+        onError(error) {
+          alert(error.message);
+        },
+      }
+    );
+  };
+
+  const buyList = (nftContract: unknown, tokenId: unknown) => {
+    writeContract(
+      {
+        abi,
+        address,
+        functionName: "buyNFT",
+        args: [nftContract, tokenId],
+      },
+      {
+        onSuccess() {
+          alert("购买成功！");
+        },
+        onError(error) {
+          alert(error.message);
+        },
+      }
+    );
+  };
+
+  useEffect(() => {
+    // console.log(result.data, "result.data");
+  }, [result]);
   return (
     <div className={styles.container}>
       <Head>
@@ -17,58 +83,107 @@ const Home: NextPage = () => {
 
       <main className={styles.main}>
         <ConnectButton />
-
-        <h1 className={styles.title}>
-          Welcome to <a href="">RainbowKit</a> + <a href="">wagmi</a> +{' '}
-          <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.tsx</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a className={styles.card} href="https://rainbowkit.com">
-            <h2>RainbowKit Documentation &rarr;</h2>
-            <p>Learn how to customize your wallet connection flow.</p>
-          </a>
-
-          <a className={styles.card} href="https://wagmi.sh">
-            <h2>wagmi Documentation &rarr;</h2>
-            <p>Learn how to interact with Ethereum.</p>
-          </a>
-
-          <a
-            className={styles.card}
-            href="https://github.com/rainbow-me/rainbowkit/tree/main/examples"
+        <div className="max-w-2xl w-full">
+          <h2 className="text-4xl font-extrabold dark:text-white mb-3">
+            上架nft
+          </h2>
+          <label
+            htmlFor="small-input"
+            className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
           >
-            <h2>RainbowKit Examples &rarr;</h2>
-            <p>Discover boilerplate example RainbowKit projects.</p>
-          </a>
-
-          <a className={styles.card} href="https://nextjs.org/docs">
-            <h2>Next.js Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a
-            className={styles.card}
-            href="https://github.com/vercel/next.js/tree/canary/examples"
+            NftContract
+          </label>
+          <input
+            type="text"
+            id="small-input"
+            value={nftContract}
+            onInput={(e) => setnftContract(e.currentTarget.value)}
+            className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          />
+          <label
+            htmlFor="small-input"
+            className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
           >
-            <h2>Next.js Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            className={styles.card}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
+            tokenId
+          </label>
+          <input
+            type="text"
+            id="small-input"
+            value={tokenId}
+            onInput={(e) => settokenId(e.currentTarget.value)}
+            className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          />
+          <label
+            htmlFor="small-input"
+            className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
           >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+            price
+          </label>
+          <input
+            type="text"
+            id="small-input"
+            value={price}
+            onInput={(e) => setprice(e.currentTarget.value)}
+            className="block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-xs focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          />
+
+          <button
+            type="button"
+            onClick={listNft}
+            disabled={!isConnected || !nftContract || !tokenId || !price}
+            className="py-2.5 px-5 me-2 mb-2 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+          >
+            {isPending ? "正在操作..." : "上架"}
+          </button>
+          <hr className="w-48 h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700"></hr>
+          <h2 className="text-4xl font-extrabold dark:text-white mb-3">
+            购买nft
+          </h2>
+
+          <div className="relative overflow-x-auto">
+            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+              <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                  <th scope="col" className="px-6 py-3">
+                    tokenId
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    seller
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    Price
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    contractAddress
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    operate
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {lists?.map((item: any) => {
+                  return (
+                    <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                      <td className="px-6 py-4">{item.tokenId.toString()}</td>
+                      <td className="px-6 py-4">{item.seller}</td>
+                      <td className="px-6 py-4">{item.price.toString()}</td>
+                      <td className="px-6 py-4">{item.nftContract}</td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() =>
+                            buyList(item.nftContract, item.tokenId)
+                          }
+                        >
+                          {isPending ? "正在操作.." : "购买nft"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </main>
 
@@ -80,5 +195,4 @@ const Home: NextPage = () => {
     </div>
   );
 };
-
 export default Home;
